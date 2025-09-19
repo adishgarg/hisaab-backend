@@ -2,9 +2,10 @@
   "name": "hisaab-backend",
   "version": "1.0.0",
   "main": "index.js",
-  "type":"module",
+  "type": "module",
   "license": "MIT",
   "dependencies": {
+    "@types/cors": "^2.8.19",
     "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
@@ -33,11 +34,11 @@
     "typescript": "^5.9.2"
   },
   "scripts": {
-  "dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts --exec \"node --loader ts-node/esm src/index.ts\"",
-  "build": "tsc",
-  "start": "node dist/index.js",
-  "lint": "eslint . --ext .ts",
-  "format": "prettier --write .",
-  "test": "jest"
-}
+    "dev": "cross-env NODE_ENV=development nodemon --watch src --ext ts --exec \"node --loader ts-node/esm src/index.ts\"",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "test": "jest"
+  }
 }
