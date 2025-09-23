@@ -1,26 +1,37 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 const employeeSchema = new mongoose.Schema(
     {
-        name:{
+        name: {
             type: String,
             required: true,
         },
-        email:{
+        email: {
             type: String,
+            required: true,
+            unique: true
         },
-        phone:{
+        phone: {
             type: String
         },
-        company:{
-            type: mongoose.Types.ObjectId,
+        companyId: {  
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Company",
+            required: true
         },
-        role:{
-            type: mongoose.Types.ObjectId,
-            ref: "Roles",
+        roleId: {  
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Role",
+            required: true
+        },
+        password: {
+            type: String,
+            required: true
         }
-    },{
+    }, {
         timestamps: true
     }
 )
+
+const Employee = mongoose.model("Employee", employeeSchema);  
+export default Employee;

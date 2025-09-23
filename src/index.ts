@@ -5,6 +5,9 @@ import mongoose from "mongoose";
 import cors from "cors";
 // -----------------------------------------------------
 import companyRouter from "./Routes/company.js"
+import employeeRouter from "./Routes/employee.js";
+import loginRouter from "./Routes/login.js"
+import signupRouter from "./Routes/signup.js"
 
 const db = mongoose.connect(process.env.MONGODB_URI as string)
 .then(()=>{
@@ -21,6 +24,9 @@ app.use(express.json());
 const PORT = process.env.PORT || 5000;
 
 app.use("/company", companyRouter);
+app.use("/employee", employeeRouter);
+app.use("/auth/login", loginRouter);
+app.use("/auth/signup", signupRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

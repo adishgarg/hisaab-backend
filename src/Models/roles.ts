@@ -10,5 +10,11 @@ const rolesScehma = new mongoose.Schema(
             type: Array,
             enums:["Accounts","Ledger","Stock"]
         }
+    },
+    {
+        timestamps: true
     }
 )
+
+const Role = mongoose.model("Role", rolesScehma);
+export default Role;

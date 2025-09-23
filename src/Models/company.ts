@@ -11,20 +11,27 @@ const companySchema = new mongoose.Schema(
             required: true 
         },
         phone: { 
-            type: String, 
-            required: true 
+            type: Number, 
+            required: true,
+            unique: true 
         },
         email: { 
             type: String, 
-            required: true 
+            required: true,
+            unique: true 
         },
         GST: { 
             type: String, 
-            required: true 
+            required: true,
+            unique: true 
         },
         employees:{
-            type: mongoose.Types.ObjectId
+            type: Array,
         },
+        password:{
+            type: String,
+            required: true
+        }
     },{ 
         timestamps: true
     }
