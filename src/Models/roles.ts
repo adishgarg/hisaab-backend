@@ -1,14 +1,23 @@
 import mongoose from "mongoose";
 
-const rolesScehma = new mongoose.Schema(
+const rolesSchema = new mongoose.Schema(
     {
-        name:{
-            type:String,
-            required:true
+        name: {
+            type: String,
+            required: true
         },
-        permissions:{
-            type: Array,
-            enums:["Accounts","Ledger","Stock"]
+        description: {
+            type: String,
+            required: true
+        },
+        permissions: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Permission"
+        }],
+        companyId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Company",
+            required: true
         }
     },
     {
@@ -16,5 +25,5 @@ const rolesScehma = new mongoose.Schema(
     }
 )
 
-const Role = mongoose.model("Role", rolesScehma);
+const Role = mongoose.model("Role", rolesSchema);
 export default Role;
