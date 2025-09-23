@@ -100,7 +100,7 @@ const requireAnyPermission = (permissions: string[]) => {
     };
 };
 
-export { 
+export default{ 
     authMiddleware, 
     companyOnly, 
     requirePermission, 
