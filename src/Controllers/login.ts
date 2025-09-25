@@ -31,7 +31,7 @@ const companyLogin = async (req: Request, res: Response) => {
                 email: company.email,
                 userType: "company"
             },
-            process.env.JWT_SECRET || "your_jwt_secret",
+            process.env.JWT_SECRET || "secret key here",
             {expiresIn: "4d"}
         )
         const companyResponse = company.toObject();

@@ -71,6 +71,7 @@ const requirePermission = (permissionName: string) => {
         }
 
         if (!req.user?.permissions?.includes(permissionName)) {
+            console.log(req.user?.permissions);
             return res.status(403).json({ 
                 error: `Access denied. Required permission: ${permissionName}` 
             });
@@ -80,29 +81,9 @@ const requirePermission = (permissionName: string) => {
     };
 };
 
-const requireAnyPermission = (permissions: string[]) => {
-    return (req: Request, res: Response, next: NextFunction) => {
-        if (req.user?.userType === "company") {
-            return next();
-        }
-
-        const hasAny = permissions.some(permission => 
-            req.user?.permissions?.includes(permission)
-        );
-
-        if (!hasAny) {
-            return res.status(403).json({ 
-                error: `Access denied. Required at least one of: ${permissions.join(', ')}` 
-            });
-        }
-
-        next();
-    };
-};
 
 export default{ 
     authMiddleware, 
     companyOnly, 
     requirePermission, 
-    requireAnyPermission 
 };
