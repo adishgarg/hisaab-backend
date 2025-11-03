@@ -1,4 +1,4 @@
-import items from "../Controllers/items";
+import items from "../Controllers/items.js";
 import { Router } from "express";
 import auth from "../middleware/auth.js";
 

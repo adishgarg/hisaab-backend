@@ -1,4 +1,4 @@
-import Unit from "../Models/units";
+import Unit from "../Models/units.js";
 import type { Response } from "express";
 import type { Request } from "express";
 

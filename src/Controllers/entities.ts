@@ -1,4 +1,4 @@
-import Entity from "../Models/entities";
+import Entity from "../Models/entities.js";
 import type { Response } from "express";
 import type { Request } from "express";
 

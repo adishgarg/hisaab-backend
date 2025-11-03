@@ -1,4 +1,4 @@
-import Item from "../Models/items";
+import Item from "../Models/items.js";
 import type { Response } from "express";
 import type { Request } from "express";
 

@@ -8,6 +8,11 @@ import employeeRouter from "./Routes/employee.js";
 import loginRouter from "./Routes/login.js"
 import signupRouter from "./Routes/signup.js"
 import rolesRouter from "./Routes/roles.js"
+import invoiceRouter from "./Routes/invoices.js"
+import entityRouter from "./Routes/entities.js"
+import unitsRouter from "./Routes/unit.js"
+import itemsRouter from "./Routes/items.js"
+// -----------------------------------------------------
 
 const db = mongoose.connect(process.env.MONGODB_URI as string)
 .then(()=>{
@@ -28,7 +33,10 @@ app.use("/employee", employeeRouter);
 app.use("/auth/login", loginRouter);
 app.use("/auth/signup", signupRouter);
 app.use("/roles", rolesRouter);
-
+app.use("/units", unitsRouter);
+app.use("/invoices", invoiceRouter);
+app.use("/entities", entityRouter);
+app.use("/items", itemsRouter);
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
