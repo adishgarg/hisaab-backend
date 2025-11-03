@@ -3,7 +3,7 @@ import companyController from "../Controllers/company.js";
 import auth from "../middleware/auth.js";
 
 const router = Router();
-
+// @GetMapping("/create")
 router.post("/create", companyController.createCompany);
 
 router.get("/all", auth.authMiddleware, auth.requirePermission("VIEW_COMPANIES"), companyController.getAllCompanies);

@@ -26,6 +26,7 @@ export const FIXED_PERMISSIONS = [
     { name: "VIEW_COMPANIES", description: "View company information", category: "COMPANY" },
     { name: "EDIT_COMPANIES", description: "Edit company details", category: "COMPANY" },
     { name: "DELETE_COMPANIES", description: "Delete companies", category: "COMPANY" },
+    {name: "UPDATE_COMPANY", description: "Update company settings", category: "COMPANY"},
 
     // EMPLOYEES
     { name: "VIEW_EMPLOYEES", description: "View employee details", category: "EMPLOYEES" },

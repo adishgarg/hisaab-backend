@@ -1,8 +1,6 @@
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
-import Company from "../Models/company.js";
 import Employee from "../Models/employee.js";
-import Role from "../Models/roles.js";
 
 declare global {
     namespace Express {
