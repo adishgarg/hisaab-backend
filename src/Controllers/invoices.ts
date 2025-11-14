@@ -1,4 +1,4 @@
-import Invoice from "../Models/invoice.js";
+import {prisma} from "../lib/prisma.js"
 import type { Response } from "express";
 import type { Request } from "express";
 

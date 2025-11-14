@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
-import Employee from "../Models/employee.js";
-import Company from "../Models/company.js";
+import {prisma} from "../lib/prisma.js"
 import type { Request, Response } from "express";   
 import jwt from "jsonwebtoken";
 

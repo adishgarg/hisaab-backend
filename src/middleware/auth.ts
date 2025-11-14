@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
-import Employee from "../Models/employee.js";
+import {prisma} from "../lib/prisma.js"
 
 declare global {
     namespace Express {

@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
-import Role from "../Models/roles.js";
-import Permission from "../Models/permissions.js";
+import {prisma} from "../lib/prisma.js"
 
 const getAllPermissions = async (req: Request, res: Response) => {
     try {

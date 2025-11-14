@@ -1,4 +1,4 @@
-import Permission, { FIXED_PERMISSIONS } from "../Models/permissions.js";
+import {prisma} from "../lib/prisma.js"
 
 export const seedPermissions = async () => {
     try {

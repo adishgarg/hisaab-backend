@@ -1,5 +1,4 @@
-import Employee from "../Models/employee.js";
-import Role from "../Models/roles.js";
+import {prisma} from "../lib/prisma.js"
 import type { Response } from "express";
 import type { Request } from "express";
 import bcrypt from "bcrypt"; 

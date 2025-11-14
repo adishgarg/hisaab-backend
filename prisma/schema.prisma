@@ -1,0 +1,209 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id String @id @default(cuid())
+  name String
+  address String
+  phone String @unique
+  email String @unique
+  gst String @unique @map("GST")
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees Employee[]
+  roles Role[]
+  items Item[]
+  invoices Invoice[]
+  entities Entity[]
+
+  @@map("companies")
+}
+
+model Employee{
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  phone String
+  password String
+  companyId String
+  roleId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id])
+
+  @@map("employees")
+}
+
+model Role {
+  id String @id @default(cuid())
+  name        String
+  description String
+  companyId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  permissions RolePermission[]
+  employees   Employee[]
+
+  @@unique([name, companyId])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  category    PermissionCategory
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  // Relations
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Entity {
+  id            String      @id @default(cuid())
+  name          String
+  type          EntityType
+  email         String?
+  phone         String?
+  address       String?
+  gstNumber     String?
+  panNumber     String?
+  contactPerson String?
+  creditLimit   Float?      @default(0)
+  paymentTerms  String?
+  notes         String?
+  status        EntityStatus @default(ACTIVE)
+  companyId     String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@map("entities")
+}
+
+model Unit {
+  id           String @id @default(cuid())
+  name         String @unique
+  abbreviation String @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  items Item[]
+
+  @@map("units")
+}
+
+model Item {
+  id          String   @id @default(cuid())
+  name        String
+  sku         String   @unique
+  description String?
+  quantity    Int      @default(0)
+  unitId      String
+  companyId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  unit         Unit          @relation(fields: [unitId], references: [id])
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoiceItems InvoiceItem[]
+
+  @@map("items")
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  date          DateTime
+  totalAmount   Float
+  customerId    String
+  companyId     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  customer Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  entity   Entity        @relation(fields: [customerId], references: [id])
+  items    InvoiceItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id        String @id @default(cuid())
+  quantity  Int
+  price     Float
+  invoiceId String
+  itemId    String
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  item    Item    @relation(fields: [itemId], references: [id])
+
+  @@map("invoice_items")
+}
+
+enum PermissionCategory {
+  COMPANY
+  EMPLOYEES
+  ROLES
+  ACCOUNTS
+  LEDGER
+  STOCK
+  REPORTS
+  ENTITIES
+  INVOICES
+  ITEMS
+  UNITS
+}
+
+enum EntityType {
+  CUSTOMER
+  BUSINESS
+}
+
+enum EntityStatus {
+  ACTIVE
+  INACTIVE
+}
