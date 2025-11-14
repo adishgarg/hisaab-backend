@@ -39,6 +39,7 @@ app.use("/employee", employeeRouter);
 app.use("/auth/login", loginRouter);
 app.use("/auth/signup", signupRouter);
 app.use("/roles", rolesRouter);
+app.use("/permissions", rolesRouter);
 app.use("/units", unitsRouter);
 app.use("/invoices", invoiceRouter);
 app.use("/entities", entityRouter);

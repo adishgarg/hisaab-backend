@@ -26,7 +26,7 @@ const companyLogin = async (req: Request, res: Response) => {
         }
         const token = jwt.sign(
             {
-                id: company._id,
+                id: company.id,
                 email: company.email,
                 userType: "company"
             },
@@ -75,7 +75,7 @@ const employeeLogin = async (req: Request, res: Response) => {
         // Generate JWT token
         const token = jwt.sign(
             { 
-                id: employee._id, 
+                id: employee.id, 
                 email: employee.email, 
                 userType: "employee" 
             },

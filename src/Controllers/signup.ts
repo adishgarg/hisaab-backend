@@ -55,7 +55,7 @@ const companySignup = async (req: Request, res: Response) => {
         // Generate JWT token
         const token = jwt.sign(
             { 
-                id: company.id,  // Use 'id' instead of '_id'
+                id: company.id,  // Use 'id' instead of 'id'
                 email: company.email, 
                 userType: "company" 
             },

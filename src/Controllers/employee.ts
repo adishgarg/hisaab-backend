@@ -13,14 +13,18 @@ const createEmployee = async (req: Request, res: Response) => {
             });
         }
 
-        const role = await Role.findOne({ _id: roleId, companyId });
+        if (!companyId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const role = await prisma.role.findFirst({ where: {id: roleId, companyId} });
         if (!role) {
             return res.status(400).json({ 
                 error: "Invalid role" 
             });
         }
 
-        const existingEmployee = await Employee.findOne({ email });
+        const existingEmployee = await prisma.employee.findFirst({ where:{email: email} });
         if (existingEmployee) {
             return res.status(409).json({ 
                 error: "Employee with this email already exists" 
@@ -30,29 +34,46 @@ const createEmployee = async (req: Request, res: Response) => {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        const employee = await Employee.create({
-            name,
-            email,
-            phone,
-            companyId,
-            roleId,
-            password: hashedPassword
+        const employee = await prisma.employee.create({
+            data: {
+                name,
+                email,
+                phone,
+                companyId,
+                roleId,
+                password: hashedPassword
+            },
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                role: {
+                    include: {
+                        permissions: {
+                            include: {
+                                permission: {
+                                    select: {
+                                        name: true,
+                                        description: true,
+                                        category: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         });
 
-        const populatedEmployee = await Employee.findById(employee._id)
-            .populate('companyId', 'name')
-            .populate({
-                path: 'roleId',
-                populate: {
-                    path: 'permissions',
-                    select: 'name description category'
-                }
-            })
-            .select('-password');
+        // Remove password from response
+        const { password: _, ...employeeWithoutPassword } = employee;
 
         res.status(201).json({
             message: "Employee created successfully",
-            employee: populatedEmployee
+            employee: employeeWithoutPassword
         });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -62,21 +83,46 @@ const createEmployee = async (req: Request, res: Response) => {
 
 const getEmployeesByCompany = async (req: Request, res: Response) => {
     try {
-        const companyId = req.user?.id; 
+        const { companyId } = req.params;
 
-        const employees = await Employee.find({ companyId })
-            .populate('companyId', 'name')
-            .populate({
-                path: 'roleId',
-                populate: {
-                    path: 'permissions',
-                    select: 'name description category'
+        if (!companyId) {
+            return res.status(400).json({ error: "Company ID is required" });
+        }
+
+        const employees = await prisma.employee.findMany({
+            where: { companyId },
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                role: {
+                    include: {
+                        permissions: {
+                            include: {
+                                permission: {
+                                    select: {
+                                        name: true,
+                                        description: true,
+                                        category: true
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-            })
-            .select('-password')
-            .sort({ createdAt: -1 });
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
 
-        res.status(200).json({ employees });
+        // Remove passwords from response
+        const employeesResponse = employees.map(({ password, ...employee }) => employee);
+
+        res.status(200).json({ employees: employeesResponse });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         res.status(500).json({ error: errorMessage });
@@ -88,22 +134,52 @@ const getEmployeeById = async (req: Request, res: Response) => {
         const { employeeId } = req.params;
         const companyId = req.user?.id;
 
-        const employee = await Employee.findOne({ _id: employeeId, companyId })
-            .populate('companyId', 'name')
-            .populate({
-                path: 'roleId',
-                populate: {
-                    path: 'permissions',
-                    select: 'name description category'
+        if (!companyId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        if (!employeeId) {
+            return res.status(400).json({ error: "Employee ID is required" });
+        }
+
+        const employee = await prisma.employee.findFirst({
+            where: {
+                id: employeeId,
+                companyId
+            },
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                role: {
+                    include: {
+                        permissions: {
+                            include: {
+                                permission: {
+                                    select: {
+                                        name: true,
+                                        description: true,
+                                        category: true
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-            })
-            .select('-password');
+            }
+        });
 
         if (!employee) {
             return res.status(404).json({ error: "Employee not found" });
         }
 
-        res.status(200).json({ employee });
+        // Remove password from response
+        const { password, ...employeeWithoutPassword } = employee;
+
+        res.status(200).json({ employee: employeeWithoutPassword });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         res.status(500).json({ error: errorMessage });
@@ -116,8 +192,21 @@ const updateEmployee = async (req: Request, res: Response) => {
         const { name, email, phone, roleId } = req.body;
         const companyId = req.user?.id;
 
+        if (!companyId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        if (!employeeId) {
+            return res.status(400).json({ error: "Employee ID is required" });
+        }
+
         if (roleId) {
-            const role = await Role.findOne({ _id: roleId, companyId });
+            const role = await prisma.role.findFirst({
+                where: {
+                    id: roleId,
+                    companyId
+                }
+            });
             if (!role) {
                 return res.status(400).json({ 
                     error: "Invalid role or role doesn't belong to your company" 
@@ -125,33 +214,47 @@ const updateEmployee = async (req: Request, res: Response) => {
             }
         }
 
-        const employee = await Employee.findOneAndUpdate(
-            { _id: employeeId, companyId },
-            { 
+        const employee = await prisma.employee.update({
+            where: {
+                id: employeeId
+            },
+            data: {
                 ...(name && { name }),
                 ...(email && { email }),
                 ...(phone && { phone }),
                 ...(roleId && { roleId })
             },
-            { new: true }
-        )
-        .populate('companyId', 'name')
-        .populate({
-            path: 'roleId',
-            populate: {
-                path: 'permissions',
-                select: 'name description category'
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                role: {
+                    include: {
+                        permissions: {
+                            include: {
+                                permission: {
+                                    select: {
+                                        name: true,
+                                        description: true,
+                                        category: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        })
-        .select('-password');
+        });
 
-        if (!employee) {
-            return res.status(404).json({ error: "Employee not found" });
-        }
+        // Remove password from response
+        const { password, ...employeeWithoutPassword } = employee;
 
         res.status(200).json({
             message: "Employee updated successfully",
-            employee
+            employee: employeeWithoutPassword
         });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -165,40 +268,81 @@ const updateEmployeeRole = async (req: Request, res: Response) => {
         const { roleId } = req.body;
         const companyId = req.user?.id;
 
+        if (!companyId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        if (!employeeId) {
+            return res.status(400).json({ error: "Employee ID is required" });
+        }
+
         if (!roleId) {
             return res.status(400).json({ error: "Role ID is required" });
         }
 
         // Validate role belongs to company
-        const role = await Role.findOne({ _id: roleId, companyId });
+        const role = await prisma.role.findFirst({
+            where: {
+                id: roleId,
+                companyId
+            }
+        });
         if (!role) {
             return res.status(400).json({ 
                 error: "Invalid role or role doesn't belong to your company" 
             });
         }
 
-        const employee = await Employee.findOneAndUpdate(
-            { _id: employeeId, companyId },
-            { roleId },
-            { new: true }
-        )
-        .populate('companyId', 'name')
-        .populate({
-            path: 'roleId',
-            populate: {
-                path: 'permissions',
-                select: 'name description category'
+        // First verify employee exists and belongs to company
+        const existingEmployee = await prisma.employee.findFirst({
+            where: {
+                id: employeeId,
+                companyId
             }
-        })
-        .select('-password');
+        });
 
-        if (!employee) {
+        if (!existingEmployee) {
             return res.status(404).json({ error: "Employee not found" });
         }
 
+        const employee = await prisma.employee.update({
+            where: {
+                id: employeeId
+            },
+            data: {
+                roleId
+            },
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                role: {
+                    include: {
+                        permissions: {
+                            include: {
+                                permission: {
+                                    select: {
+                                        name: true,
+                                        description: true,
+                                        category: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Remove password from response
+        const { password, ...employeeWithoutPassword } = employee;
+
         res.status(200).json({
             message: "Employee role updated successfully",
-            employee
+            employee: employeeWithoutPassword
         });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -211,11 +355,31 @@ const deleteEmployee = async (req: Request, res: Response) => {
         const { employeeId } = req.params;
         const companyId = req.user?.id;
 
-        const employee = await Employee.findOneAndDelete({ _id: employeeId, companyId });
+        if (!companyId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        if (!employeeId) {
+            return res.status(400).json({ error: "Employee ID is required" });
+        }
+
+        // First check if employee exists and belongs to company
+        const existingEmployee = await prisma.employee.findFirst({
+            where: {
+                id: employeeId,
+                companyId
+            }
+        });
         
-        if (!employee) {
+        if (!existingEmployee) {
             return res.status(404).json({ error: "Employee not found" });
         }
+
+        await prisma.employee.delete({
+            where: {
+                id: employeeId
+            }
+        });
 
         res.status(200).json({ message: "Employee deleted successfully" });
     } catch (error) {
