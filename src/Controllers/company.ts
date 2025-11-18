@@ -7,11 +7,12 @@ const createCompany = async (req: Request, res:Response)=>{
     try{
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
-        req.body.password = hashedPassword;
-        const company = await prisma.comany.create({
-            data: req.body,
-            password: hashedPassword,
-            gst: req.body.GST,
+        const company = await prisma.company.create({
+            data: {
+                ...req.body,
+                password: hashedPassword,
+                gst: req.body.GST,
+            },
         });
         res.status(201).json(company);
     }catch(error){

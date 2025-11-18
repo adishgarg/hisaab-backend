@@ -12,7 +12,9 @@ const companyLogin = async (req: Request, res: Response) => {
             });
         }
 
-        const company = await Company.findOne({email});
+        const company = await prisma.company.findUnique({
+            where: { email }
+        });
         if(!company){
             return res.status(401).json({
                 error: "Invalid Credentials"
@@ -33,8 +35,9 @@ const companyLogin = async (req: Request, res: Response) => {
             process.env.JWT_SECRET || "secret key here",
             {expiresIn: "4d"}
         )
-        const companyResponse = company.toObject();
-        const { password: companyPassword, ...userWithoutPassword } = companyResponse;
+        
+        // Remove password from response
+        const { password: companyPassword, ...userWithoutPassword } = company;
 
         res.json({
             message: "Company login successful",
@@ -60,8 +63,33 @@ const employeeLogin = async (req: Request, res: Response) => {
             });
         }
 
-        // Find employee by email
-        const employee = await Employee.findOne({ email });
+        // Find employee by email with role and company information
+        const employee = await prisma.employee.findUnique({
+            where: { email },
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                role: {
+                    include: {
+                        permissions: {
+                            include: {
+                                permission: {
+                                    select: {
+                                        name: true,
+                                        description: true,
+                                        category: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
         if (!employee) {
             return res.status(401).json({ error: "Invalid credentials" });
         }
@@ -77,20 +105,20 @@ const employeeLogin = async (req: Request, res: Response) => {
             { 
                 id: employee.id, 
                 email: employee.email, 
-                userType: "employee" 
+                userType: "employee",
+                companyId: employee.companyId
             },
             process.env.JWT_SECRET || "secret key here",
             { expiresIn: "4d" }
         );
 
         // Remove password from response
-        const employeeResponse = employee.toObject();
-        const {password: employeePassword, ...employeeWithOutPassword} = employeeResponse;
+        const {password: employeePassword, ...employeeWithoutPassword} = employee;
 
         res.json({
             message: "Employee login successful",
             token,
-            user: employeeWithOutPassword,
+            user: employeeWithoutPassword,
             userType: "employee"
         });
 

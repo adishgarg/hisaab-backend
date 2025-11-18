@@ -30,15 +30,27 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
         let userPermissions: string[] = [];
 
         if (decoded.userType === "employee") {
-            const employee = await Employee.findById(decoded.id).populate({
-                path: 'roleId',
-                populate: {
-                    path: 'permissions'
+            const employee = await prisma.employee.findUnique({
+                where: { id: decoded.id },
+                include: {
+                    role: {
+                        include: {
+                            permissions: {
+                                include: {
+                                    permission: {
+                                        select: {
+                                            name: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             });
 
-            if (employee && employee.roleId) {
-                userPermissions = (employee.roleId as any).permissions.map((p: any) => p.name);
+            if (employee && employee.role) {
+                userPermissions = employee.role.permissions.map((rp: any) => rp.permission.name);
             }
         }
 
