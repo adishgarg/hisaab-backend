@@ -1,7 +1,8 @@
 import {prisma} from "../lib/prisma.js"
 import type { Response } from "express";
 import type { Request } from "express";
-import bcrypt from "bcrypt"; 
+import bcrypt from "bcrypt";
+import { websocketService } from "../services/websocket.js"; 
 
 const createEmployee = async (req: Request, res: Response) => {
     try {
@@ -70,6 +71,20 @@ const createEmployee = async (req: Request, res: Response) => {
 
         // Remove password from response
         const { password: _, ...employeeWithoutPassword } = employee;
+
+        // Send notification
+        await websocketService.createAndSendNotification({
+            title: "New Employee Added",
+            message: `${name} has been added as a new employee`,
+            type: "EMPLOYEE_ADDED",
+            priority: "NORMAL",
+            companyId,
+            metadata: {
+                employeeId: employee.id,
+                employeeName: name,
+                roleName: employee.role.name,
+            },
+        });
 
         res.status(201).json({
             message: "Employee created successfully",

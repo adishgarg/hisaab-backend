@@ -1,6 +1,7 @@
 import {prisma} from "../lib/prisma.js"
 import type { Response } from "express";
 import type { Request } from "express";
+import { websocketService } from "../services/websocket.js";
 
 const createInvoice = async (req: Request, res: Response) => {
     try {
@@ -138,6 +139,21 @@ const createInvoice = async (req: Request, res: Response) => {
                     }
                 }
             });
+        });
+
+        // Send notification
+        await websocketService.createAndSendNotification({
+            title: "New Invoice Created",
+            message: `Invoice ${invoiceNumber} has been created for ${customer.name}`,
+            type: "INVOICE_CREATED",
+            priority: "NORMAL",
+            companyId,
+            metadata: {
+                invoiceId: result?.id,
+                invoiceNumber,
+                totalAmount,
+                customerName: customer.name,
+            },
         });
 
         res.status(201).json({

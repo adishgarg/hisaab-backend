@@ -207,3 +207,43 @@ enum EntityStatus {
   ACTIVE
   INACTIVE
 }
+
+model Notification {
+  id          String           @id @default(cuid())
+  title       String
+  message     String
+  type        NotificationType
+  priority    NotificationPriority @default(NORMAL)
+  isRead      Boolean          @default(false)
+  companyId   String?
+  employeeId  String?
+  metadata    Json?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([companyId, isRead])
+  @@index([employeeId, isRead])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  INVOICE_CREATED
+  INVOICE_UPDATED
+  INVOICE_DELETED
+  EMPLOYEE_ADDED
+  EMPLOYEE_UPDATED
+  EMPLOYEE_REMOVED
+  ROLE_CHANGED
+  ENTITY_ADDED
+  ENTITY_UPDATED
+  ITEM_LOW_STOCK
+  SYSTEM_ALERT
+  GENERAL
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}

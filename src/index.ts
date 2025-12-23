@@ -1,8 +1,10 @@
 import "dotenv/config";
 import express from "express";
+import { createServer } from "http";
 import cors from "cors";
 import { prisma } from "./lib/prisma.js";
 import { seedPermissions } from "./seed.js";
+import { websocketService } from "./services/websocket.js";
 
 // Import routes
 import companyRouter from "./Routes/company.js";
@@ -14,8 +16,11 @@ import invoiceRouter from "./Routes/invoices.js";
 import entityRouter from "./Routes/entities.js";
 import unitsRouter from "./Routes/unit.js";
 import itemsRouter from "./Routes/items.js";
+import notificationsRouter from "./Routes/notifications.js";
 
 const app = express();
+const httpServer = createServer(app);
+
 app.use(cors());
 app.use(express.json());
 
@@ -43,6 +48,7 @@ app.use("/units", unitsRouter);
 app.use("/invoices", invoiceRouter);
 app.use("/entities", entityRouter);
 app.use("/items", itemsRouter);
+app.use("/notifications", notificationsRouter);
 
 // Graceful shutdown
 process.on("SIGINT", async () => {
@@ -56,7 +62,10 @@ process.on("SIGTERM", async () => {
 });
 
 initializeDatabase().then(() => {
-  app.listen(PORT, () => {
+  httpServer.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
+    
+    // Initialize WebSocket service
+    websocketService.initialize(httpServer);
   });
 });
